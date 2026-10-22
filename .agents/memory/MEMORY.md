@@ -1,0 +1,1 @@
+- [Denge API contract](denge-api-contract.md) — keep calendar dates as strings and pin Orval to Query v5 for generated clients.

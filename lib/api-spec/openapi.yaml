@@ -3,13 +3,15 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Denge health and nutrition tracker API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: denge
+    description: Authenticated health tracking
 paths:
   /healthz:
     get:
@@ -24,6 +26,292 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [denge]
+      summary: Get daily dashboard totals and recent progress
+      parameters:
+        - in: query
+          name: date
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Daily summary
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Dashboard" }
+  /foods:
+    get:
+      operationId: getFoods
+      tags: [denge]
+      summary: Search estimated food nutrition values
+      parameters:
+        - in: query
+          name: search
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: Food catalog
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Food" }
+  /meals:
+    get:
+      operationId: getMeals
+      tags: [denge]
+      summary: List a user's meals for a day
+      parameters:
+        - in: query
+          name: date
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Meals
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Meal" }
+    post:
+      operationId: createMeal
+      tags: [denge]
+      summary: Add a meal entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MealInput" }
+      responses:
+        "201":
+          description: Created meal
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Meal" }
+  /meals/{id}:
+    patch:
+      operationId: updateMeal
+      tags: [denge]
+      summary: Update a meal entry
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MealUpdate" }
+      responses:
+        "200":
+          description: Updated meal
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Meal" }
+    delete:
+      operationId: deleteMeal
+      tags: [denge]
+      summary: Delete a meal entry
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "204": { description: Deleted }
+  /activities:
+    get:
+      operationId: getActivities
+      tags: [denge]
+      summary: List a user's activities for a day
+      parameters:
+        - in: query
+          name: date
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Activities
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Activity" }
+    post:
+      operationId: createActivity
+      tags: [denge]
+      summary: Record an activity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ActivityInput" }
+      responses:
+        "201":
+          description: Created activity
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Activity" }
+  /activities/{id}:
+    patch:
+      operationId: updateActivity
+      tags: [denge]
+      summary: Update an activity
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ActivityUpdate" }
+      responses:
+        "200":
+          description: Updated activity
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Activity" }
+    delete:
+      operationId: deleteActivity
+      tags: [denge]
+      summary: Delete an activity
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "204": { description: Deleted }
+  /daily-log:
+    get:
+      operationId: getDailyLog
+      tags: [denge]
+      summary: Get steps, water and sleep for a day
+      parameters:
+        - in: query
+          name: date
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Daily log
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DailyLog" }
+    put:
+      operationId: upsertDailyLog
+      tags: [denge]
+      summary: Save daily steps, water and sleep
+      parameters:
+        - in: query
+          name: date
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DailyLogInput" }
+      responses:
+        "200":
+          description: Saved daily log
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DailyLog" }
+  /goals:
+    get:
+      operationId: getGoals
+      tags: [denge]
+      summary: Get personal goals
+      responses:
+        "200":
+          description: Goals
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Goals" }
+    put:
+      operationId: updateGoals
+      tags: [denge]
+      summary: Save personal goals
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GoalsInput" }
+      responses:
+        "200":
+          description: Saved goals
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Goals" }
+  /weights:
+    get:
+      operationId: getWeights
+      tags: [denge]
+      summary: List a user's weight history
+      responses:
+        "200":
+          description: Weight history
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/WeightEntry" }
+    post:
+      operationId: createWeight
+      tags: [denge]
+      summary: Record a weight
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WeightInput" }
+      responses:
+        "201":
+          description: Created weight entry
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WeightEntry" }
+  /weights/{id}:
+    patch:
+      operationId: updateWeight
+      tags: [denge]
+      summary: Update a weight entry
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WeightUpdate" }
+      responses:
+        "200":
+          description: Updated weight entry
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WeightEntry" }
+    delete:
+      operationId: deleteWeight
+      tags: [denge]
+      summary: Delete a weight entry
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "204": { description: Deleted }
 components:
   schemas:
     HealthStatus:
@@ -33,4 +321,164 @@ components:
           type: string
       required:
         - status
+    Food:
+      type: object
+      required: [id, name, servingGrams, calories, protein, carbohydrates, fat]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        servingGrams: { type: number }
+        calories: { type: number }
+        protein: { type: number }
+        carbohydrates: { type: number }
+        fat: { type: number }
+    Meal:
+      type: object
+      required: [id, name, mealType, portionGrams, calories, protein, carbohydrates, fat, date]
+      properties:
+        id: { type: integer }
+        foodId: { type: ["integer", "null"] }
+        name: { type: string }
+        mealType: { type: string, enum: [kahvalti, ogle, aksam, ara] }
+        portionGrams: { type: number }
+        calories: { type: number }
+        protein: { type: number }
+        carbohydrates: { type: number }
+        fat: { type: number }
+        date: { type: string }
+    MealInput:
+      type: object
+      required: [name, mealType, portionGrams, calories, protein, carbohydrates, fat, date]
+      properties:
+        foodId: { type: ["integer", "null"] }
+        name: { type: string, minLength: 1 }
+        mealType: { type: string, enum: [kahvalti, ogle, aksam, ara] }
+        portionGrams: { type: number, exclusiveMinimum: 0 }
+        calories: { type: number, minimum: 0 }
+        protein: { type: number, minimum: 0 }
+        carbohydrates: { type: number, minimum: 0 }
+        fat: { type: number, minimum: 0 }
+        date: { type: string }
+    MealUpdate:
+      type: object
+      required: [name, mealType, portionGrams, calories, protein, carbohydrates, fat]
+      properties:
+        name: { type: string, minLength: 1 }
+        mealType: { type: string, enum: [kahvalti, ogle, aksam, ara] }
+        portionGrams: { type: number, exclusiveMinimum: 0 }
+        calories: { type: number, minimum: 0 }
+        protein: { type: number, minimum: 0 }
+        carbohydrates: { type: number, minimum: 0 }
+        fat: { type: number, minimum: 0 }
+    Activity:
+      type: object
+      required: [id, type, durationMinutes, distanceKm, estimatedCalories, date]
+      properties:
+        id: { type: integer }
+        type: { type: string, enum: [yuruyus, kosu, bisiklet, antrenman, diger] }
+        durationMinutes: { type: integer }
+        distanceKm: { type: ["number", "null"] }
+        estimatedCalories: { type: number }
+        date: { type: string }
+    ActivityInput:
+      type: object
+      required: [type, durationMinutes, estimatedCalories, date]
+      properties:
+        type: { type: string, enum: [yuruyus, kosu, bisiklet, antrenman, diger] }
+        durationMinutes: { type: integer, minimum: 1 }
+        distanceKm: { type: ["number", "null"], minimum: 0 }
+        estimatedCalories: { type: number, minimum: 0 }
+        date: { type: string }
+    ActivityUpdate:
+      type: object
+      required: [type, durationMinutes, estimatedCalories]
+      properties:
+        type: { type: string, enum: [yuruyus, kosu, bisiklet, antrenman, diger] }
+        durationMinutes: { type: integer, minimum: 1 }
+        distanceKm: { type: ["number", "null"], minimum: 0 }
+        estimatedCalories: { type: number, minimum: 0 }
+    DailyLog:
+      type: object
+      required: [date, steps, waterMl, sleepMinutes]
+      properties:
+        date: { type: string }
+        steps: { type: integer }
+        waterMl: { type: integer }
+        sleepMinutes: { type: integer }
+    DailyLogInput:
+      type: object
+      required: [steps, waterMl, sleepMinutes]
+      properties:
+        steps: { type: integer, minimum: 0 }
+        waterMl: { type: integer, minimum: 0 }
+        sleepMinutes: { type: integer, minimum: 0 }
+    Goals:
+      type: object
+      required: [calorieGoal, stepGoal, waterGoalMl, sleepGoalMinutes, currentWeightKg, targetWeightKg, weightDirection]
+      properties:
+        calorieGoal: { type: integer }
+        stepGoal: { type: integer }
+        waterGoalMl: { type: integer }
+        sleepGoalMinutes: { type: integer }
+        currentWeightKg: { type: ["number", "null"] }
+        targetWeightKg: { type: ["number", "null"] }
+        weightDirection: { type: string, enum: [ver, al, koru] }
+    GoalsInput:
+      type: object
+      required: [calorieGoal, stepGoal, waterGoalMl, sleepGoalMinutes, weightDirection]
+      properties:
+        calorieGoal: { type: integer, minimum: 1 }
+        stepGoal: { type: integer, minimum: 1 }
+        waterGoalMl: { type: integer, minimum: 1 }
+        sleepGoalMinutes: { type: integer, minimum: 1 }
+        currentWeightKg: { type: ["number", "null"], minimum: 1 }
+        targetWeightKg: { type: ["number", "null"], minimum: 1 }
+        weightDirection: { type: string, enum: [ver, al, koru] }
+    WeightEntry:
+      type: object
+      required: [id, weightKg, date]
+      properties:
+        id: { type: integer }
+        weightKg: { type: number }
+        date: { type: string }
+    WeightInput:
+      type: object
+      required: [weightKg, date]
+      properties:
+        weightKg: { type: number, exclusiveMinimum: 0 }
+        date: { type: string }
+    WeightUpdate:
+      type: object
+      required: [weightKg, date]
+      properties:
+        weightKg: { type: number, exclusiveMinimum: 0 }
+        date: { type: string }
+    Dashboard:
+      type: object
+      required: [date, caloriesConsumed, caloriesBurned, calorieGoal, steps, stepGoal, waterMl, waterGoalMl, sleepMinutes, sleepGoalMinutes, protein, carbohydrates, fat, weeklySteps, latestWeightKg, targetWeightKg]
+      properties:
+        date: { type: string }
+        caloriesConsumed: { type: number }
+        caloriesBurned: { type: number }
+        calorieGoal: { type: integer }
+        steps: { type: integer }
+        stepGoal: { type: integer }
+        waterMl: { type: integer }
+        waterGoalMl: { type: integer }
+        sleepMinutes: { type: integer }
+        sleepGoalMinutes: { type: integer }
+        protein: { type: number }
+        carbohydrates: { type: number }
+        fat: { type: number }
+        weeklySteps:
+          type: array
+          items: { $ref: "#/components/schemas/DaySteps" }
+        latestWeightKg: { type: ["number", "null"] }
+        targetWeightKg: { type: ["number", "null"] }
+    DaySteps:
+      type: object
+      required: [date, steps]
+      properties:
+        date: { type: string }
+        steps: { type: integer }
 

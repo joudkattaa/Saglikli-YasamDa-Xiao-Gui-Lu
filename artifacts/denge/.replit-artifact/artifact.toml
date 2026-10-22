@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Denge"
+description = "Türkçe sağlıklı yaşam ve beslenme takip uygulaması. Kullanıcılar yemek, aktivite, kilo, su ve uyku kayıtlarını güvenli hesaplarıyla kaydedip günlük hedeflerini takip eder."
+version = "1.0.0"
+id = "artifacts/denge"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21332
+
+[services.development]
+run = "pnpm --filter @workspace/denge run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/denge", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/denge/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21332"
+BASE_PATH = "/"
