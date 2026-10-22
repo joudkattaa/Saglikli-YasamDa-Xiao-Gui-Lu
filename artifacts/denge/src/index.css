@@ -361,6 +361,8 @@ a { color: inherit; text-decoration: none; }
 .profile-name small { display:block; color:#969888; font-size:10px; font-weight:500; margin-top:3px; }
 .profile button,.meal-row>button,.activity-row>button,.weight-row>button { width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:10px;background:transparent;color:#858978; }
 .profile button:hover,.meal-row>button:hover,.activity-row>button:hover,.weight-row>button:hover { background:#e1e4d8;color:var(--olive); }
+.locale-switcher {display:inline-flex;align-items:center;flex:none;}
+.locale-switcher select {height:34px;min-width:86px;padding:0 10px;border:1px solid #e2e1d6;border-radius:11px;background:#fbf9f2;color:#68735d;font-size:10px;font-weight:700;cursor:pointer;}
 .main-area { margin-left:252px; width:calc(100% - 252px); min-height:100dvh; padding:30px clamp(24px,4.4vw,68px) 18px; display:flex; flex-direction:column; }
 .main-top { display:flex; align-items:center; justify-content:space-between; padding-bottom:34px; border-bottom:1px solid #e5e2d7; }
 .date-pill { display:inline-flex;align-items:center;gap:9px;border-radius:20px;padding:8px 13px;background:#ebe9de;color:#737867;text-transform:capitalize;font-size:11px;font-weight:600; }
@@ -608,10 +610,19 @@ a { color: inherit; text-decoration: none; }
 .landing-footer .brand {font-size:19px;}
 .landing-footer .brand-mark {width:29px;height:29px;border-radius:10px 10px 10px 4px;}
 .auth-page {min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 18px 30px;background:radial-gradient(ellipse at 50% 10%,#e8ebdd 0%,#f4f1e8 53%);}
+.auth-language {position:absolute;top:20px;right:22px;z-index:5;}
 .auth-back {position:absolute;top:32px;left:clamp(22px,7vw,100px);display:flex;align-items:center;gap:9px;color:#4c5d43;font:800 21px var(--app-font-serif);}
 .auth-back .brand-mark {width:31px;height:31px;border-radius:11px 11px 11px 4px;}
 .auth-caption {margin:0 0 22px;color:#878d7a;font-size:12px;}
 .app-footer {flex-shrink:0;}
+.not-found-page {min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;color:var(--olive-dark);}
+.not-found-page h1 {margin:0;font:700 clamp(28px,5vw,44px) var(--app-font-serif);}
+.not-found-page p {margin:0 0 8px;color:#858978;font-size:13px;}
+[dir="rtl"] .sidebar {left:auto;right:0;border-right:0;border-left:1px solid #e3e1d5;}
+[dir="rtl"] .main-area {margin-left:0;margin-right:252px;}
+[dir="rtl"] .nav-caption {margin-left:0;margin-right:13px;text-align:right;}
+[dir="rtl"] .auth-language {right:auto;left:22px;}
+[dir="rtl"] .auth-back {left:auto;right:clamp(22px,7vw,100px);}
 @keyframes skeleton-pulse {to{opacity:.55}}
 @keyframes fade-in {from{opacity:0}to{opacity:1}}
 @keyframes modal-in {from{opacity:0;transform:translateY(9px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -620,16 +631,21 @@ a { color: inherit; text-decoration: none; }
 @keyframes float-in {from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:1050px) {
   .sidebar {width:220px}.main-area {margin-left:220px;width:calc(100% - 220px);padding-left:28px;padding-right:28px}
+  [dir="rtl"] .main-area {margin-left:0;margin-right:220px;}
   .hero {gap:15px}.sun-disc {width:min(34vw,330px)}.orbit-one{width:390px}.orbit-two{width:430px}
   .landing-features {gap:45px;padding-left:2%;padding-right:2%}
 }
 @media(max-width:760px) {
   .sidebar {transform:translateX(-105%);transition:transform .28s cubic-bezier(.2,.8,.2,1);box-shadow:10px 0 30px #303b2d12}.sidebar-open{transform:translateX(0)}
+  [dir="rtl"] .sidebar {transform:translateX(105%);box-shadow:-10px 0 30px #303b2d12}
+  [dir="rtl"] .sidebar-open {transform:translateX(0)}
   .main-area {margin:0;width:100%;padding:0 18px 15px}
-  .mobile-header {height:59px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e5e2d7}
+  [dir="rtl"] .main-area {margin:0;width:100%;}
+  .mobile-header {height:59px;display:flex;align-items:center;justify-content:space-between;gap:7px;border-bottom:1px solid #e5e2d7}
   .mobile-header>button {border:0;background:transparent;color:#66725a;padding:6px}
   .mobile-header .brand {font-size:20px;gap:7px}.mobile-header .brand-mark{width:29px;height:29px;border-radius:10px 10px 10px 4px}
   .mobile-date {color:#909382;font-size:10px;text-transform:capitalize}
+  .mobile-header .locale-switcher select {min-width:76px;height:31px;padding:0 7px;font-size:9px}
   .main-top {padding:16px 0 19px}.top-greeting {display:none}
   .page-heading {margin:26px 0 19px;align-items:flex-start}.page-heading h1{font-size:28px}
   .page-heading>.btn {align-self:center;padding:0 12px;font-size:10px;min-height:37px}
@@ -681,6 +697,10 @@ a { color: inherit; text-decoration: none; }
   .quick-log-actions>button {padding:0 9px;font-size:9px}
   .landing-nav .nav-login {font-size:10px}
 }
+[lang="ar"] body {font-family:"Noto Sans Arabic","Segoe UI",Arial,sans-serif;}
+[lang="ar"] h1,[lang="ar"] h2,[lang="ar"] h3 {font-family:"Noto Naskh Arabic","Noto Sans Arabic",serif;letter-spacing:0;}
+[dir="rtl"] .eyebrow {letter-spacing:0;}
+[dir="rtl"] .auth-back {left:auto;right:20px;}
 
 /**
  * Using the elevate system.
