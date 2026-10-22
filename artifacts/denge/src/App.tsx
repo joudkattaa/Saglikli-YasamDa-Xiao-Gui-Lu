@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { ClerkLoaded, ClerkProvider, SignIn, SignUp, Show, useClerk, useUser } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
@@ -318,7 +318,142 @@ function GoalsPage() {
 function HomeRedirect() { return <><Show when="signed-in"><Redirect to="/dashboard"/></Show><Show when="signed-out"><Home/></Show></>; }
 function Protected({ children }: {children:ReactNode}) { return <><Show when="signed-in">{children}</Show><Show when="signed-out"><Redirect to="/"/></Show></>; }
 function SignInPage() { return <LocaleText><div className="auth-page"><div className="auth-language"><LocaleSwitcher/></div><Link href="/" className="auth-back" data-testid="link-auth-home"><span className="brand-mark"><Leaf size={18}/></span> denge</Link><p className="auth-caption">Kendine ayırdığın alana hoş geldin.</p><SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`}/></div></LocaleText>; }
-function SignUpPage() { return <LocaleText><div className="auth-page"><div className="auth-language"><LocaleSwitcher/></div><Link href="/" className="auth-back" data-testid="link-auth-home"><span className="brand-mark"><Leaf size={18}/></span> denge</Link><p className="auth-caption">İyi hissetmek için küçük bir başlangıç.</p><SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`}/></div></LocaleText>; }
+type SignupProfileDraft = { firstName: string; lastName: string; ageYears: number | null };
+
+function SignUpPage() {
+  const { t } = useI18n();
+  const [step, setStep] = useState<'profile' | 'credentials'>('profile');
+  const [details, setDetails] = useState({ firstName: '', lastName: '', ageYears: '' });
+  const [draft, setDraft] = useState<SignupProfileDraft | null>(null);
+  const [error, setError] = useState('');
+
+  const continueToCredentials = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const firstName = details.firstName.trim();
+    const lastName = details.lastName.trim();
+    const ageValue = details.ageYears.trim();
+    const ageYears = ageValue === '' ? null : Number(ageValue);
+
+    if (!firstName || !lastName) {
+      setError(t('Ad ve soyad alanlarını doldur.'));
+      return;
+    }
+    if (ageYears !== null && (!Number.isInteger(ageYears) || ageYears < 1 || ageYears > 120)) {
+      setError(t('Yaşı 1 ile 120 arasında gir veya boş bırak.'));
+      return;
+    }
+
+    setError('');
+    setDraft({ firstName, lastName, ageYears });
+    setStep('credentials');
+  };
+
+  return <LocaleText><div className="auth-page">
+    <div className="auth-language"><LocaleSwitcher/></div>
+    <Link href="/" className="auth-back" data-testid="link-auth-home"><span className="brand-mark"><Leaf size={18}/></span> denge</Link>
+    <p className="auth-caption">{t('İyi hissetmek için küçük bir başlangıç.')}</p>
+    {step === 'profile' ? <form className="signup-profile-card" onSubmit={continueToCredentials}>
+      <h1>{t('Önce seni tanıyalım.')}</h1>
+      <p>{t('Adını ve soyadını yaz. Yaşını istersen yıl olarak ekle; tam doğum tarihini istemiyoruz.')}</p>
+      <div className="signup-profile-fields">
+        <label className="field-label">
+          <span>{t('Ad')}</span>
+          <input autoComplete="given-name" required maxLength={80} value={details.firstName} onChange={event => setDetails(value => ({ ...value, firstName: event.target.value }))} placeholder={t('Adını yaz')} data-testid="input-signup-first-name"/>
+        </label>
+        <label className="field-label">
+          <span>{t('Soyad')}</span>
+          <input autoComplete="family-name" required maxLength={80} value={details.lastName} onChange={event => setDetails(value => ({ ...value, lastName: event.target.value }))} placeholder={t('Soyadını yaz')} data-testid="input-signup-last-name"/>
+        </label>
+        <label className="field-label signup-age-field">
+          <span>{t('Yaş (yıl)')} <small>{t('İsteğe bağlı')}</small></span>
+          <input type="number" min="1" max="120" step="1" inputMode="numeric" value={details.ageYears} onChange={event => setDetails(value => ({ ...value, ageYears: event.target.value }))} placeholder="—" data-testid="input-signup-age"/>
+        </label>
+      </div>
+      {error && <p className="signup-profile-error" role="alert">{error}</p>}
+      <button className="btn btn-primary" type="submit" data-testid="button-signup-profile-continue">{t('E-posta ve parola ile devam et')}</button>
+    </form> : <div className="signup-credentials-step">
+      {draft && <div className="signup-profile-summary">
+        <span><small>{t('Profil bilgileri')}</small><strong data-no-translate>{draft.firstName} {draft.lastName}</strong></span>
+        <button type="button" className="signup-edit-button" onClick={() => setStep('profile')}>{t('Bilgileri değiştir')}</button>
+      </div>}
+      <p className="signup-credentials-note">{t('E-posta adresin ve parolan sonraki adımda güvenli şekilde istenir.')}</p>
+      {draft && <SignUp
+        routing="path"
+        path={`${basePath}/sign-up`}
+        signInUrl={`${basePath}/sign-in`}
+        forceRedirectUrl={`${basePath}/complete-signup`}
+        initialValues={{ firstName: draft.firstName, lastName: draft.lastName }}
+        unsafeMetadata={{ dengeSignupProfile: draft }}
+      />}
+    </div>}
+  </div></LocaleText>;
+}
+
+function CompleteSignupPage() {
+  const { user } = useUser();
+  const { t } = useI18n();
+  const updateProfile = useUpdateProfile();
+  const [, setLocation] = useLocation();
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const attempted = useRef(false);
+
+  const completeProfile = useCallback(async () => {
+    if (!user) return;
+    const rawDraft = user.unsafeMetadata?.dengeSignupProfile;
+    if (!rawDraft || typeof rawDraft !== 'object') {
+      setLocation('/dashboard', { replace: true });
+      return;
+    }
+
+    const profileDraft = rawDraft as Partial<SignupProfileDraft>;
+    const firstName = typeof profileDraft.firstName === 'string' ? profileDraft.firstName.trim() : '';
+    const lastName = typeof profileDraft.lastName === 'string' ? profileDraft.lastName.trim() : '';
+    if (!firstName || !lastName) {
+      setLocation('/dashboard', { replace: true });
+      return;
+    }
+
+    const ageYears = typeof profileDraft.ageYears === 'number'
+      && Number.isInteger(profileDraft.ageYears)
+      && profileDraft.ageYears >= 1
+      && profileDraft.ageYears <= 120
+      ? profileDraft.ageYears
+      : null;
+
+    setSaving(true);
+    setError('');
+    try {
+      await updateProfile.mutateAsync({ data: { ageYears } });
+      await user.update({
+        firstName,
+        lastName,
+        unsafeMetadata: { ...user.unsafeMetadata, dengeSignupProfile: null },
+      });
+      setLocation('/dashboard', { replace: true });
+    } catch {
+      setError(t('Profil kaydedilemedi. Tekrar deneyebilirsin.'));
+    } finally {
+      setSaving(false);
+    }
+  }, [setLocation, t, updateProfile.mutateAsync, user]);
+
+  useEffect(() => {
+    if (!user || attempted.current) return;
+    attempted.current = true;
+    void completeProfile();
+  }, [completeProfile, user]);
+
+  return <LocaleText><div className="auth-page">
+    <div className="auth-language"><LocaleSwitcher/></div>
+    <Link href="/" className="auth-back" data-testid="link-auth-home"><span className="brand-mark"><Leaf size={18}/></span> denge</Link>
+    <div className="signup-completion-card">
+      <h1>{t('Hesabın hazırlanıyor…')}</h1>
+      <p>{error || t('Profil bilgileri kaydediliyor.')}</p>
+      {error && <button className="btn btn-primary" type="button" onClick={() => void completeProfile()} disabled={saving}>{saving ? t('Kaydediliyor…') : t('Yeniden dene')}</button>}
+    </div>
+  </div></LocaleText>;
+}
 function AccountPage() {
   const { user } = useUser();
   const { t } = useI18n();
@@ -423,6 +558,7 @@ function Router() {
   return <ClerkProvider publishableKey={clerkPubKey} proxyUrl={clerkProxyUrl} appearance={clerkAppearance} signInUrl={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} localization={localization} routerPush={to=>setLocation(stripBase(to))} routerReplace={to=>setLocation(stripBase(to),{replace:true})}>
     <ClerkLoaded><ClerkQueryClientCacheInvalidator/><LocalePreferenceSync/>
       <Switch><Route path="/" component={HomeRedirect}/><Route path="/sign-in/*?" component={SignInPage}/><Route path="/sign-up/*?" component={SignUpPage}/>
+        <Route path="/complete-signup">{()=><Protected><CompleteSignupPage/></Protected>}</Route>
         <Route path="/dashboard">{()=><Protected><Dashboard/></Protected>}</Route>
         <Route path="/beslenme">{()=><Protected><MealsPage/></Protected>}</Route>
         <Route path="/aktivite">{()=><Protected><ActivityPage/></Protected>}</Route>

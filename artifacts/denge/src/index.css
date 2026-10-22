@@ -633,6 +633,31 @@ a { color: inherit; text-decoration: none; }
 .auth-back {position:absolute;top:32px;left:clamp(22px,7vw,100px);display:flex;align-items:center;gap:9px;color:#4c5d43;font:800 21px var(--app-font-serif);}
 .auth-back .brand-mark {width:31px;height:31px;border-radius:11px 11px 11px 4px;}
 .auth-caption {margin:0 0 22px;color:#878d7a;font-size:12px;}
+.signup-profile-card,.signup-completion-card {width:min(100%,480px);padding:25px;border:1px solid #e3e1d5;border-radius:22px;background:#fffdf8;box-shadow:0 18px 48px #47513d12;}
+.signup-profile-card h1,.signup-completion-card h1 {margin:0;color:#3f4f39;font:700 clamp(24px,4vw,32px)/1.15 var(--app-font-serif);letter-spacing:-.5px;}
+.signup-profile-card>p,.signup-completion-card>p {margin:10px 0 20px;color:#858978;font-size:12px;line-height:1.65;}
+.signup-profile-fields {display:grid;grid-template-columns:1fr 1fr;gap:0 14px;}
+.signup-profile-fields .field-label {margin-bottom:14px;color:#68705f;font-size:11px;}
+.signup-profile-fields .field-label input {height:45px;font-size:13px;}
+.signup-profile-fields .field-label small {margin-left:5px;color:#979b8c;font-size:10px;font-weight:500;}
+.signup-profile-fields .signup-age-field {grid-column:1/-1;}
+.signup-profile-card>.btn {width:100%;justify-content:center;margin-top:3px;}
+.signup-profile-error {margin:8px 0 0!important;color:#a23b37!important;}
+.signup-credentials-step {width:min(100%,440px);display:flex;flex-direction:column;align-items:stretch;}
+.signup-profile-summary {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;margin-bottom:12px;border:1px solid #e5e3d8;border-radius:14px;background:#fffdf8;}
+.signup-profile-summary span {display:grid;gap:3px;}
+.signup-profile-summary small {color:#838977;font-size:10px;}
+.signup-profile-summary strong {color:#43523d;font-size:13px;}
+.signup-edit-button {border:0;background:transparent;color:#607752;font:700 11px var(--app-font-sans);cursor:pointer;}
+.signup-credentials-note {margin:0 0 14px;color:#828775;font-size:11px;text-align:center;}
+.signup-completion-card {text-align:center;}
+.signup-completion-card .btn {margin:10px auto 0;}
+@media(max-width:520px) {
+  .signup-profile-card,.signup-completion-card {padding:21px;border-radius:18px;}
+  .signup-profile-fields {grid-template-columns:1fr;}
+  .signup-profile-fields .signup-age-field {grid-column:auto;}
+  .signup-profile-summary {align-items:flex-start;flex-direction:column;}
+}
 .app-footer {flex-shrink:0;}
 .not-found-page {min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;color:var(--olive-dark);}
 .not-found-page h1 {margin:0;font:700 clamp(28px,5vw,44px) var(--app-font-serif);}
