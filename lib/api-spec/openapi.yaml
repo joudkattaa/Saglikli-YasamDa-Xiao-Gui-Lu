@@ -252,6 +252,32 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Goals" }
+  /profile:
+    get:
+      operationId: getProfile
+      tags: [denge]
+      summary: Get the authenticated user's profile details
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Profile" }
+    put:
+      operationId: updateProfile
+      tags: [denge]
+      summary: Save the authenticated user's optional age
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProfileInput" }
+      responses:
+        "200":
+          description: Saved profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Profile" }
   /weights:
     get:
       operationId: getWeights
@@ -434,6 +460,16 @@ components:
         currentWeightKg: { type: ["number", "null"], minimum: 1 }
         targetWeightKg: { type: ["number", "null"], minimum: 1 }
         weightDirection: { type: string, enum: [ver, al, koru] }
+    Profile:
+      type: object
+      required: [ageYears]
+      properties:
+        ageYears: { type: ["integer", "null"], minimum: 1, maximum: 120 }
+    ProfileInput:
+      type: object
+      required: [ageYears]
+      properties:
+        ageYears: { type: ["integer", "null"], minimum: 1, maximum: 120 }
     WeightEntry:
       type: object
       required: [id, weightKg, date]

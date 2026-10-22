@@ -33,6 +33,8 @@ export * from './mealInputMealType';
 export * from './mealMealType';
 export * from './mealUpdate';
 export * from './mealUpdateMealType';
+export * from './profile';
+export * from './profileInput';
 export * from './upsertDailyLogParams';
 export * from './weightEntry';
 export * from './weightInput';

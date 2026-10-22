@@ -1,1 +1,2 @@
 - [Denge API contract](denge-api-contract.md) — keep calendar dates as strings and pin Orval to Query v5 for generated clients.
+- [Denge profile age scope](denge-profile-age.md) — collect age in optional years only; do not request full date of birth.

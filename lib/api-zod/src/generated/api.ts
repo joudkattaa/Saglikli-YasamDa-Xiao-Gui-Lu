@@ -362,6 +362,38 @@ export const UpdateGoalsResponse = zod.object({
 
 
 /**
+ * @summary Get the authenticated user's profile details
+ */
+export const getProfileResponseAgeYearsMax = 120;
+
+
+
+export const GetProfileResponse = zod.object({
+  "ageYears": zod.number().int().min(1).max(getProfileResponseAgeYearsMax).nullable()
+})
+
+
+/**
+ * @summary Save the authenticated user's optional age
+ */
+export const updateProfileBodyAgeYearsMax = 120;
+
+
+
+export const UpdateProfileBody = zod.object({
+  "ageYears": zod.number().int().min(1).max(updateProfileBodyAgeYearsMax).nullable()
+})
+
+export const updateProfileResponseAgeYearsMax = 120;
+
+
+
+export const UpdateProfileResponse = zod.object({
+  "ageYears": zod.number().int().min(1).max(updateProfileResponseAgeYearsMax).nullable()
+})
+
+
+/**
  * @summary List a user's weight history
  */
 export const GetWeightsResponseItem = zod.object({

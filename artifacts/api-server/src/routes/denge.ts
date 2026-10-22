@@ -22,12 +22,15 @@ import {
   GetGoalsResponse,
   GetMealsQueryParams,
   GetMealsResponse,
+  GetProfileResponse,
   GetWeightsResponse,
   UpdateActivityResponse,
   UpdateActivityBody,
   UpdateActivityParams,
   UpdateGoalsBody,
   UpdateGoalsResponse,
+  UpdateProfileBody,
+  UpdateProfileResponse,
   UpdateMealResponse,
   UpdateMealBody,
   UpdateMealParams,
@@ -383,6 +386,34 @@ router.put("/goals", async (req, res): Promise<void> => {
     .where(eq(goalsTable.userId, userId))
     .returning();
   res.json(UpdateGoalsResponse.parse(goals));
+});
+
+router.get("/profile", async (req, res): Promise<void> => {
+  const userId = getUserId(req, res);
+  if (!userId) return;
+  await ensureUser(userId);
+  const [profile] = await db
+    .select({ ageYears: usersTable.ageYears })
+    .from(usersTable)
+    .where(eq(usersTable.id, userId));
+  res.json(GetProfileResponse.parse({ ageYears: profile?.ageYears ?? null }));
+});
+
+router.put("/profile", async (req, res): Promise<void> => {
+  const userId = getUserId(req, res);
+  if (!userId) return;
+  const body = UpdateProfileBody.safeParse(req.body);
+  if (!body.success) {
+    res.status(400).json({ error: body.error.message });
+    return;
+  }
+  await ensureUser(userId);
+  const [profile] = await db
+    .update(usersTable)
+    .set({ ageYears: body.data.ageYears })
+    .where(eq(usersTable.id, userId))
+    .returning({ ageYears: usersTable.ageYears });
+  res.json(UpdateProfileResponse.parse({ ageYears: profile?.ageYears ?? null }));
 });
 
 router.get("/weights", async (req, res): Promise<void> => {

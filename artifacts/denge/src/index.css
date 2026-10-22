@@ -363,6 +363,25 @@ a { color: inherit; text-decoration: none; }
 .profile button:hover,.meal-row>button:hover,.activity-row>button:hover,.weight-row>button:hover { background:#e1e4d8;color:var(--olive); }
 .locale-switcher {display:inline-flex;align-items:center;flex:none;}
 .locale-switcher select {height:34px;min-width:86px;padding:0 10px;border:1px solid #e2e1d6;border-radius:11px;background:#fbf9f2;color:#68735d;font-size:10px;font-weight:700;cursor:pointer;}
+.account-grid {display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:15px;}
+.account-profile-panel,.account-age-panel {padding:23px;}
+.account-profile-head {display:flex;align-items:center;gap:14px;}
+.account-avatar {width:48px;height:48px;display:grid;place-items:center;border-radius:17px;background:#e2e7d9;color:var(--olive-dark);font:700 18px var(--app-font-serif);}
+.account-profile-head .eyebrow {margin:0 0 5px;}
+.account-profile-head h2 {margin:0;color:var(--olive-dark);font:700 22px/1.2 var(--app-font-serif);}
+.account-details {display:grid;margin-top:18px;}
+.account-info-row {display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:14px 0;border-bottom:1px solid #eeece3;font-size:12px;}
+.account-info-row>span {color:#929583;}
+.account-info-row>strong {max-width:68%;color:#4c5745;font-weight:700;text-align:end;overflow-wrap:anywhere;}
+.account-note {margin:14px 0 0;color:#929583;font-size:11px;line-height:1.6;}
+.account-age-form {display:grid;gap:13px;margin-top:17px;}
+.account-age-field>span {display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.account-age-field small {color:#9b9e8e;font-size:10px;font-weight:500;}
+.account-age-field input {width:100%;height:43px;margin-top:7px;padding:0 12px;border:1px solid #e2e1d6;border-radius:12px;background:#fffdf8;color:var(--ink);outline:none;}
+.account-age-field input:focus {border-color:#9ca98f;box-shadow:0 0 0 3px #8796721c;}
+.account-age-form>.btn {justify-self:start;}
+.account-status {font-size:11px;line-height:1.5;}
+.account-status.error-message {color:#a94f42;}
 .main-area { margin-left:252px; width:calc(100% - 252px); min-height:100dvh; padding:30px clamp(24px,4.4vw,68px) 18px; display:flex; flex-direction:column; }
 .main-top { display:flex; align-items:center; justify-content:space-between; padding-bottom:34px; border-bottom:1px solid #e5e2d7; }
 .date-pill { display:inline-flex;align-items:center;gap:9px;border-radius:20px;padding:8px 13px;background:#ebe9de;color:#737867;text-transform:capitalize;font-size:11px;font-weight:600; }
@@ -651,6 +670,7 @@ a { color: inherit; text-decoration: none; }
   .page-heading>.btn {align-self:center;padding:0 12px;font-size:10px;min-height:37px}
   .panel {padding:17px;border-radius:18px}
   .dashboard-grid,.lower-grid,.activity-top-grid,.weight-layout,.goals-layout {grid-template-columns:1fr}
+  .account-grid {grid-template-columns:1fr}
   .calorie-main {min-height:160px;gap:23px}.donut{width:130px;height:130px}
   .macro-panel {min-height:220px}.metric-grid {grid-template-columns:1fr;gap:9px}.metric-grid .panel {padding:13px 16px}
   .metric {display:grid;grid-template-columns:37px 1fr;column-gap:11px;align-items:center}

@@ -7,15 +7,15 @@ import { shadcn } from '@clerk/themes';
 import {
   Activity as ActivityIcon, ArrowDownRight, ArrowRight, ArrowUpRight, BarChart3, Check,
   CircleHelp, Clock3, Droplets, Footprints, Heart, Leaf, LogOut, Menu,
-  Moon, Plus, Scale, Settings2, Sparkles, Trash2, Utensils, X,
+  Moon, Plus, Scale, Settings2, Sparkles, Trash2, Utensils, UserRound, X,
 } from 'lucide-react';
 import {
-  getGetActivitiesQueryKey, getGetDashboardQueryKey, getGetDailyLogQueryKey,
+  getGetActivitiesQueryKey, getGetDashboardQueryKey, getGetDailyLogQueryKey, getGetProfileQueryKey,
   getGetFoodsQueryKey, getGetGoalsQueryKey, getGetMealsQueryKey, getGetWeightsQueryKey,
   useCreateActivity, useCreateMeal, useCreateWeight, useDeleteActivity, useDeleteMeal,
-  useDeleteWeight, useGetActivities, useGetDashboard, useGetDailyLog, useGetFoods,
+  useDeleteWeight, useGetActivities, useGetDashboard, useGetDailyLog, useGetFoods, useGetProfile,
   useGetGoals, useGetMeals, useGetWeights, useUpdateActivity, useUpdateGoals,
-  useUpdateMeal, useUpdateWeight, useUpsertDailyLog,
+  useUpdateMeal, useUpdateProfile, useUpdateWeight, useUpsertDailyLog,
 } from '@workspace/api-client-react';
 import type { Activity as ActivityRecord, ActivityInput, Food, GoalsInput, Meal as MealRecord, MealInput, MealUpdate } from '@workspace/api-client-react';
 import { Link, Redirect, Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
@@ -123,6 +123,7 @@ function Shell({ children }: { children: ReactNode }) {
     { href: '/aktivite', label: 'Aktivite', icon: ActivityIcon },
     { href: '/kilo', label: 'Kilo takibi', icon: Scale },
     { href: '/hedefler', label: 'Hedefler', icon: Settings2 },
+    { href: '/hesabim', label: 'Hesabım', icon: UserRound },
   ];
   return <LocaleText><div className="app-shell">
     <aside className={`sidebar ${open ? 'sidebar-open' : ''}`}>
@@ -318,6 +319,99 @@ function HomeRedirect() { return <><Show when="signed-in"><Redirect to="/dashboa
 function Protected({ children }: {children:ReactNode}) { return <><Show when="signed-in">{children}</Show><Show when="signed-out"><Redirect to="/"/></Show></>; }
 function SignInPage() { return <LocaleText><div className="auth-page"><div className="auth-language"><LocaleSwitcher/></div><Link href="/" className="auth-back" data-testid="link-auth-home"><span className="brand-mark"><Leaf size={18}/></span> denge</Link><p className="auth-caption">Kendine ayırdığın alana hoş geldin.</p><SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`}/></div></LocaleText>; }
 function SignUpPage() { return <LocaleText><div className="auth-page"><div className="auth-language"><LocaleSwitcher/></div><Link href="/" className="auth-back" data-testid="link-auth-home"><span className="brand-mark"><Leaf size={18}/></span> denge</Link><p className="auth-caption">İyi hissetmek için küçük bir başlangıç.</p><SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`}/></div></LocaleText>; }
+function AccountPage() {
+  const { user } = useUser();
+  const { t } = useI18n();
+  const queryClient = useQueryClient();
+  const profileQuery = useGetProfile();
+  const updateProfile = useUpdateProfile();
+  const [ageYears, setAgeYears] = useState('');
+
+  useEffect(() => {
+    if (profileQuery.data) {
+      setAgeYears(profileQuery.data.ageYears === null ? '' : String(profileQuery.data.ageYears));
+    }
+  }, [profileQuery.data]);
+
+  const saveAge = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const age = ageYears.trim() === '' ? null : Number(ageYears);
+    if (age !== null && (!Number.isInteger(age) || age < 1 || age > 120)) return;
+    updateProfile.mutate(
+      { data: { ageYears: age } },
+      { onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetProfileQueryKey() }) },
+    );
+  };
+
+  const displayName = user?.fullName?.trim()
+    || [user?.firstName, user?.lastName].filter(Boolean).join(' ');
+  const displayEmail = user?.primaryEmailAddress?.emailAddress;
+  const avatarInitial = displayName?.[0] || displayEmail?.[0]?.toUpperCase() || 'D';
+
+  return <Shell>
+    <Heading eyebrow="HESABIM" title="Hesap bilgilerin." note="Profil bilgilerin ve yaş tercihin."/>
+    <QueryState loading={profileQuery.isLoading} error={profileQuery.isError} retry={() => profileQuery.refetch()}/>
+    <div className="account-grid">
+      <Panel className="account-profile-panel">
+        <div className="account-profile-head">
+          <span className="account-avatar">{avatarInitial}</span>
+          <div>
+            <p className="eyebrow">PROFİL BİLGİLERİ</p>
+            <h2>{t('Profil bilgileri')}</h2>
+          </div>
+        </div>
+        <div className="account-details">
+          <div className="account-info-row">
+            <span>Ad soyad</span>
+            <strong data-no-translate>{displayName || t('İsim belirtilmemiş')}</strong>
+          </div>
+          <div className="account-info-row">
+            <span>E-posta</span>
+            <strong data-no-translate>{displayEmail || t('E-posta adresi bulunamadı')}</strong>
+          </div>
+        </div>
+        <p className="account-note">Ad ve e-posta bilgilerin hesabından alınır.</p>
+      </Panel>
+      <Panel className="account-age-panel">
+        <div className="panel-heading">
+          <div>
+            <span className="eyebrow">İSTEĞE BAĞLI</span>
+            <h3>Yaş bilgisi</h3>
+          </div>
+          <UserRound size={18} className="muted-icon"/>
+        </div>
+        <form className="account-age-form" onSubmit={saveAge}>
+          <label className="field-label account-age-field">
+            <span>Yaş (yıl) <small>İsteğe bağlı</small></span>
+            <input
+              type="number"
+              min="1"
+              max="120"
+              step="1"
+              inputMode="numeric"
+              value={ageYears}
+              onChange={event => setAgeYears(event.target.value)}
+              placeholder="—"
+              disabled={profileQuery.isLoading || updateProfile.isPending}
+              data-testid="input-profile-age"
+            />
+          </label>
+          <p className="account-note">Yaşını istediğin zaman silebilirsin.</p>
+          <Button
+            type="submit"
+            disabled={profileQuery.isLoading || profileQuery.isError || updateProfile.isPending}
+            testId="button-save-profile-age"
+          >
+            {updateProfile.isPending ? 'Kaydediliyor…' : 'Yaşını kaydet'}
+          </Button>
+          {updateProfile.isSuccess && <span className="account-status saved-message">Yaş bilgisi kaydedildi.</span>}
+          {updateProfile.isError && <span className="account-status error-message">Yaş bilgisi kaydedilemedi. Yeniden dene.</span>}
+        </form>
+      </Panel>
+    </div>
+  </Shell>;
+}
+
 function Router() {
   const [,setLocation]=useLocation();
   const { locale } = useI18n();
@@ -333,7 +427,8 @@ function Router() {
         <Route path="/beslenme">{()=><Protected><MealsPage/></Protected>}</Route>
         <Route path="/aktivite">{()=><Protected><ActivityPage/></Protected>}</Route>
         <Route path="/kilo">{()=><Protected><WeightPage/></Protected>}</Route>
-        <Route path="/hedefler">{()=><Protected><GoalsPage/></Protected>}</Route><Route component={NotFoundPage}/>
+        <Route path="/hedefler">{()=><Protected><GoalsPage/></Protected>}</Route>
+        <Route path="/hesabim">{()=><Protected><AccountPage/></Protected>}</Route><Route component={NotFoundPage}/>
       </Switch>
     </ClerkLoaded>
   </ClerkProvider>;

@@ -236,6 +236,24 @@ export interface GoalsInput {
   weightDirection: GoalsInputWeightDirection;
 }
 
+export interface Profile {
+  /**
+     * @minimum 1
+     * @maximum 120
+     * @nullable
+     */
+  ageYears: number | null;
+}
+
+export interface ProfileInput {
+  /**
+     * @minimum 1
+     * @maximum 120
+     * @nullable
+     */
+  ageYears: number | null;
+}
+
 export interface WeightEntry {
   id: number;
   weightKg: number;
