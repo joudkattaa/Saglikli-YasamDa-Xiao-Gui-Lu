@@ -22,6 +22,7 @@ import { Link, Redirect, Route, Switch, Router as WouterRouter, useLocation } fr
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
+import { getProfileName } from '@/lib/profile-name';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { LocaleProvider, LocaleSwitcher, LocaleText, getLocaleTag, translateText, useI18n, type Locale } from './i18n';
 
@@ -117,6 +118,7 @@ function Shell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const { user } = useUser();
   const { signOut } = useClerk();
+  const profileName = getProfileName(user);
   const nav = [
     { href: '/dashboard', label: 'Genel bakış', icon: BarChart3 },
     { href: '/beslenme', label: 'Beslenme', icon: Utensils },
@@ -130,7 +132,7 @@ function Shell({ children }: { children: ReactNode }) {
       <Link href="/dashboard" className="brand" data-testid="link-brand"><span className="brand-mark"><Leaf size={19}/></span><span>denge<small>iyi hisset, dengede kal</small></span></Link>
       <div className="nav-caption">GÜNÜN</div>
       <nav>{nav.map(({ href, label, icon: Icon }) => <Link key={href} href={href} onClick={() => setOpen(false)} className={`nav-link ${path === href ? 'active' : ''}`} data-testid={`link-nav-${href.slice(1)}`}><Icon size={18}/><span>{label}</span>{path === href && <span className="nav-active-dot"/>}</Link>)}</nav>
-      <div className="sidebar-bottom"><div className="sidebar-note"><span className="note-icon"><Heart size={16}/></span><p>Küçük adımlar,<br/><b>iyi alışkanlıklar.</b></p></div><div className="profile"><span className="profile-avatar">{user?.firstName?.[0] || 'D'}</span><span className="profile-name">{user?.firstName?<span data-no-translate>{user.firstName}</span>:'Merhaba'}<small>Denge hesabın</small></span><button onClick={() => signOut({ redirectUrl: basePath || '/' })} data-testid="button-signout" aria-label="Çıkış yap"><LogOut size={16}/></button></div></div>
+      <div className="sidebar-bottom"><div className="sidebar-note"><span className="note-icon"><Heart size={16}/></span><p>Küçük adımlar,<br/><b>iyi alışkanlıklar.</b></p></div><div className="profile"><span className="profile-avatar">{profileName.fullName[0] || 'D'}</span><span className="profile-name">{profileName.firstName?<span data-no-translate>{profileName.firstName}</span>:'Merhaba'}<small>Denge hesabın</small></span><button onClick={() => signOut({ redirectUrl: basePath || '/' })} data-testid="button-signout" aria-label="Çıkış yap"><LogOut size={16}/></button></div></div>
     </aside>
     <main className="main-area"><header className="mobile-header"><button onClick={() => setOpen(!open)} data-testid="button-menu" aria-label="Menüyü aç veya kapat">{open ? <X/> : <Menu/>}</button><Link href="/dashboard" className="brand"><span className="brand-mark"><Leaf size={17}/></span>denge</Link><span className="mobile-date">{new Date().toLocaleDateString(getLocaleTag(locale),{day:'numeric',month:'short'})}</span></header>
       <div className="main-top"><span className="date-pill"><span className="date-dot"/>{new Date().toLocaleDateString(getLocaleTag(locale),{weekday:'long',day:'numeric',month:'long'})}</span><span className="top-greeting">Bugün kendin için güzel bir gün.</span><LocaleSwitcher/></div>
@@ -393,6 +395,7 @@ function CompleteSignupPage() {
   const { user } = useUser();
   const { t } = useI18n();
   const updateProfile = useUpdateProfile();
+  const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -424,19 +427,23 @@ function CompleteSignupPage() {
     setSaving(true);
     setError('');
     try {
-      await updateProfile.mutateAsync({ data: { ageYears } });
-      await user.update({
-        firstName,
-        lastName,
-        unsafeMetadata: { ...user.unsafeMetadata, dengeSignupProfile: null },
+      const profile = await updateProfile.mutateAsync({ data: { ageYears } });
+      await user.updateMetadata({
+        unsafeMetadata: {
+          dengeProfile: { firstName, lastName },
+          dengeSignupProfile: null,
+        },
       });
+      queryClient.setQueryData(getGetProfileQueryKey(), profile);
       setLocation('/dashboard', { replace: true });
-    } catch {
+    } catch (error) {
+      const clerkError = error as { errors?: Array<{ code?: string }> };
+      console.error('Denge profile completion failed', { codes: clerkError.errors?.map(item => item.code) });
       setError(t('Profil kaydedilemedi. Tekrar deneyebilirsin.'));
     } finally {
       setSaving(false);
     }
-  }, [setLocation, t, updateProfile.mutateAsync, user]);
+  }, [queryClient, setLocation, t, updateProfile.mutateAsync, user]);
 
   useEffect(() => {
     if (!user || attempted.current) return;
@@ -478,8 +485,7 @@ function AccountPage() {
     );
   };
 
-  const displayName = user?.fullName?.trim()
-    || [user?.firstName, user?.lastName].filter(Boolean).join(' ');
+  const displayName = getProfileName(user).fullName;
   const displayEmail = user?.primaryEmailAddress?.emailAddress;
   const avatarInitial = displayName?.[0] || displayEmail?.[0]?.toUpperCase() || 'D';
 

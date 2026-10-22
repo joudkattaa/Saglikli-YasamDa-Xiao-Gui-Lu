@@ -1,2 +1,3 @@
 - [Denge API contract](denge-api-contract.md) — keep calendar dates as strings and pin Orval to Query v5 for generated clients.
 - [Denge profile age scope](denge-profile-age.md) — collect age in optional years only; do not request full date of birth.
+- [Denge Clerk profile names](denge-clerk-profile-names.md) — native name writes are disabled in the managed tenant; keep app-owned names in user metadata.
